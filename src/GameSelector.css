@@ -1,0 +1,18 @@
+.game-name {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+.game-description {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 1em;
+}
+
+.game-tile {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
