@@ -47,6 +47,7 @@ export class Board<ValueType>
     }
     this.board[y * this.width + x] = value;
     this.occupiedCells.push({ x, y });
+    console.log(`setAt: ${this.board.length}, ${this.occupiedCells.length}`);
   }
 
   clone() : Board<ValueType>
@@ -55,11 +56,14 @@ export class Board<ValueType>
 
     const newBoard = new Board<ValueType>(this.width, this.height, emptyValue);
     newBoard.board = [...this.board];
+    newBoard.occupiedCells = [...this.occupiedCells];
+    
     return newBoard;
   }
 
   isBoardFull() : boolean
   {
+    console.log(`isBoardFull: ${this.board.length}, ${this.occupiedCells.length}`);
     return this.board.length === this.occupiedCells.length;
   }
 

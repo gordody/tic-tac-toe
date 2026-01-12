@@ -4,11 +4,26 @@ import Board from './Board.ts';
 import './TicTacToeGame.css'
 import type { GameProps } from '../interfaces.ts';
 
-import type { BoardPlaceValueType, BoardMove } from '../types.ts';
+import type { XValueType, OValueType, EmptyValueType, BoardPlaceValueType, BoardMove } from '../types.ts';
 
+// Tic-Tac-Toe game logic
+// 3x3 grid, 2 players (X and O), take turns
+// one wins by connecting 3 in a row, column, or diagonal
 
 const BoardWidth = 3;
 const BoardHeight = 3;
+
+const PlayerToValueMap: { [key: number]: BoardPlaceValueType } = {
+  1: 'X' as XValueType,
+  2: 'O' as OValueType,
+};
+
+const EmptyValue = '' as EmptyValueType;
+
+type GameAction =
+  | { type: "reset" }
+  | { type: "move"; value: BoardMove } // State["board"]
+
 
 interface State {
   player: number;
@@ -17,25 +32,22 @@ interface State {
   board: Board<BoardPlaceValueType>;
 };
 
-type GameAction =
-  | { type: "reset" }
-  | { type: "move"; value: BoardMove } // State["board"]
 
 const initialState: State = { 
   player: 1,
   playerWon: 0,
   tieGame: false,
-  board: new Board<BoardPlaceValueType>(BoardWidth, BoardHeight, 'E'),
+  board: new Board<BoardPlaceValueType>(BoardWidth, BoardHeight, EmptyValue),
 };
 
 function playerToValue(player: number) : BoardPlaceValueType
 {
-  return player === 1 ? 'X' : 'O';
+  return PlayerToValueMap[player];
 }
 
 function isCellEmpty(value: BoardPlaceValueType) : boolean
 {
-  return value === 'E';
+  return value === EmptyValue;
 }
 
 // 3 of the same in a row, column or diagonal
@@ -62,9 +74,13 @@ function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, mov
   const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
   const tieGame = newBoard.isBoardFull() && !playerWon;
 
-  if (playerWon) 
+  if (playerWon !== 0) 
   {
     console.log(`Player ${player} wins!`);
+  }
+  if (tieGame)
+  {
+    console.log(`Game tied!`);
   }
 
   return { newBoard, newPlayer, playerWon, tieGame };
@@ -132,7 +148,7 @@ function stateReducer(state: State, action: GameAction): State {
       return initialState;
     case "move":
       {
-        if (state.playerWon) 
+        if (state.playerWon !== 0 || state.tieGame) 
         {
           return state; // no more moves allowed
         }
@@ -161,7 +177,8 @@ function TicTacToeGame(gameProps: GameProps) {
   return (
     <>
       <div>Current Player: {state.player}</div>
-      {state.playerWon ? <div>{state.player} won</div>  : ""}
+      {state.playerWon !== 0 ? <div>{state.player} won</div>  : ""}
+      {state.tieGame ? <div>Game tied</div>  : ""}
 
       <BoardGameGrid rows={BoardHeight} cols={BoardWidth} board={state.board} boardActive={!state.playerWon} moveHandler={move} />
       <div>

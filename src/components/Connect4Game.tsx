@@ -6,6 +6,11 @@ import type { GameProps } from '../interfaces.ts';
 
 import type { BoardPlaceValueType, BoardMove } from '../types.ts'
 
+// Connect-4 game logic
+// 7x6 grid, 2 players (X and O), take turns
+// one wins by connecting 4 in a row, column, or diagonal
+// gravity mechanics: pieces fall to the lowest available cell in a column
+
 const BoardWidth = 7;
 const BoardHeight = 6;
 
@@ -31,26 +36,9 @@ function playerToValue(player: number) : BoardPlaceValueType
 }
 
 // 3 of the same in a row, column or diagonal
-function playerWins(board: Board<BoardPlaceValueType>) : boolean
+function playerWins(board: Board<BoardPlaceValueType>, value: BoardPlaceValueType) : boolean
 {
-  // rows
-  for (let x = 0; x < BoardWidth; x++) 
-  {
-    if (board.getAt(x, 0) !== 'E' && board.getAt(x, 0) === board.getAt(x, 1) && board.getAt(x, 1) === board.getAt(x, 2)) {
-      return true;
-    }
-  }
-  // cols
-  for (let y = 0; y < BoardHeight; y++) {
-    if (board.getAt(0, y) !== 'E' && board.getAt(0, y) === board.getAt(1, y) && board.getAt(1, y) === board.getAt(2, y)) {
-      return true;
-    }
-  }
-  // diags
-  if (board.getAt(0, 0) !== 'E' && board.getAt(0, 0) === board.getAt(1, 1) && board.getAt(1, 1) === board.getAt(2, 2)) return true;
-  if (board.getAt(0, 2) !== 'E' && board.getAt(0, 2) === board.getAt(1, 1) && board.getAt(1, 1) === board.getAt(2, 0)) return true;
-  
-  return false;
+  return board.isNConnected(4, value);
 }
 
 function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : { newBoard: Board<BoardPlaceValueType>, newPlayer: number, playerWon: boolean }
