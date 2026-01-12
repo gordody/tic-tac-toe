@@ -31,27 +31,34 @@ function playerToValue(player: number) : BoardPlaceValueType
   return player === 1 ? 'X' : 'O';
 }
 
-// 3 of the same in a row, column or diagonal
-function playerWins(board: Board<BoardPlaceValueType>) : boolean
+function isCellEmpty(value: BoardPlaceValueType) : boolean
 {
-  // rows
-  for (let x = 0; x < BoardWidth; x++) 
-  {
-    if (board.getAt(x, 0) !== 'E' && board.getAt(x, 0) === board.getAt(x, 1) && board.getAt(x, 1) === board.getAt(x, 2)) {
-      return true;
-    }
-  }
-  // cols
-  for (let y = 0; y < BoardHeight; y++) {
-    if (board.getAt(0, y) !== 'E' && board.getAt(0, y) === board.getAt(1, y) && board.getAt(1, y) === board.getAt(2, y)) {
-      return true;
-    }
-  }
-  // diags
-  if (board.getAt(0, 0) !== 'E' && board.getAt(0, 0) === board.getAt(1, 1) && board.getAt(1, 1) === board.getAt(2, 2)) return true;
-  if (board.getAt(0, 2) !== 'E' && board.getAt(0, 2) === board.getAt(1, 1) && board.getAt(1, 1) === board.getAt(2, 0)) return true;
+  return value === 'E';
+}
+
+// 3 of the same in a row, column or diagonal
+function playerWins(board: Board<BoardPlaceValueType>, value: BoardPlaceValueType) : boolean
+{
+  return board.isNConnected(3, value);
+
+  // // rows
+  // for (let x = 0; x < BoardWidth; x++) 
+  // {
+  //   if (!isCellEmpty(board.getAt(x, 0)) && board.getAt(x, 0) === board.getAt(x, 1) && board.getAt(x, 1) === board.getAt(x, 2)) {
+  //     return true;
+  //   }
+  // }
+  // // cols
+  // for (let y = 0; y < BoardHeight; y++) {
+  //   if (!isCellEmpty(board.getAt(0, y)) && board.getAt(0, y) === board.getAt(1, y) && board.getAt(1, y) === board.getAt(2, y)) {
+  //     return true;
+  //   }
+  // }
+  // // diags
+  // if (!isCellEmpty(board.getAt(0, 0)) && board.getAt(0, 0) === board.getAt(1, 1) && board.getAt(1, 1) === board.getAt(2, 2)) return true;
+  // if (!isCellEmpty(board.getAt(0, 2)) && board.getAt(0, 2) === board.getAt(1, 1) && board.getAt(1, 1) === board.getAt(2, 0)) return true;
   
-  return false;
+  // return false;
 }
 
 function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : { newBoard: Board<BoardPlaceValueType>, newPlayer: number, playerWon: boolean }
@@ -59,12 +66,12 @@ function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, mov
   const newBoard = board.clone();
 
   const newValue = playerToValue(player);
-  if (newBoard.getAt(move.x, move.y) === 'E')
+  if (isCellEmpty(newBoard.getAt(move.x, move.y)))
   {
     newBoard.setAt(move.x, move.y, newValue);
   }
 
-  const playerWon = playerWins(newBoard);
+  const playerWon = playerWins(newBoard, newValue);
   const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
 
   if (playerWon) {

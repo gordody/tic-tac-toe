@@ -9,6 +9,8 @@ import GomokuGame from './components/GomokuGame.tsx';
 
 import availableGames from './defaultGames.json';
 
+import './App.css';
+
 
 const App: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
@@ -23,6 +25,8 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
+      <div className="app-title">Grid Games</div>
+
       {!selectedGame ? (
         <GameSelector games={availableGames} onSelectGame={handleSelectGame} />
       ) : selectedGame === 'tic-tac-toe' ? (

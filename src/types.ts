@@ -1,2 +1,3 @@
 export type BoardPlaceValueType = 'X' | 'O' | 'E';
-export type BoardMove = { x: number, y: number };
+export type Coordinate = { x: number, y: number };
+export type BoardMove = Coordinate;

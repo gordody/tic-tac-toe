@@ -95,8 +95,6 @@ export const BoardGameGrid: React.FC<BoardGameGridProps> = ({
   moveHandler,
 }) => {
 
-  console.log(`Rendering BoardGameGrid with board: cols: ${cols} rows: ${rows} ${board.board}`);
-
   const renderCell = (x: number, y: number) => {
     return board.getAt(x, y);
   };
