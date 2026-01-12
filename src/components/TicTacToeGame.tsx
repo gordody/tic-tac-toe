@@ -12,7 +12,8 @@ const BoardHeight = 3;
 
 interface State {
   player: number;
-  playerWon: boolean;
+  playerWon: number;
+  tieGame: boolean;
   board: Board<BoardPlaceValueType>;
 };
 
@@ -22,7 +23,8 @@ type GameAction =
 
 const initialState: State = { 
   player: 1,
-  playerWon: false,
+  playerWon: 0,
+  tieGame: false,
   board: new Board<BoardPlaceValueType>(BoardWidth, BoardHeight, 'E'),
 };
 
@@ -40,28 +42,13 @@ function isCellEmpty(value: BoardPlaceValueType) : boolean
 function playerWins(board: Board<BoardPlaceValueType>, value: BoardPlaceValueType) : boolean
 {
   return board.isNConnected(3, value);
-
-  // // rows
-  // for (let x = 0; x < BoardWidth; x++) 
-  // {
-  //   if (!isCellEmpty(board.getAt(x, 0)) && board.getAt(x, 0) === board.getAt(x, 1) && board.getAt(x, 1) === board.getAt(x, 2)) {
-  //     return true;
-  //   }
-  // }
-  // // cols
-  // for (let y = 0; y < BoardHeight; y++) {
-  //   if (!isCellEmpty(board.getAt(0, y)) && board.getAt(0, y) === board.getAt(1, y) && board.getAt(1, y) === board.getAt(2, y)) {
-  //     return true;
-  //   }
-  // }
-  // // diags
-  // if (!isCellEmpty(board.getAt(0, 0)) && board.getAt(0, 0) === board.getAt(1, 1) && board.getAt(1, 1) === board.getAt(2, 2)) return true;
-  // if (!isCellEmpty(board.getAt(0, 2)) && board.getAt(0, 2) === board.getAt(1, 1) && board.getAt(1, 1) === board.getAt(2, 0)) return true;
-  
-  // return false;
 }
 
-function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : { newBoard: Board<BoardPlaceValueType>, newPlayer: number, playerWon: boolean }
+function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : { 
+  newBoard: Board<BoardPlaceValueType>, 
+  newPlayer: number, 
+  playerWon: number,
+  tieGame: boolean }
 {
   const newBoard = board.clone();
 
@@ -71,14 +58,16 @@ function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, mov
     newBoard.setAt(move.x, move.y, newValue);
   }
 
-  const playerWon = playerWins(newBoard, newValue);
+  const playerWon = playerWins(newBoard, newValue) ? player : 0;
   const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
+  const tieGame = newBoard.isBoardFull() && !playerWon;
 
-  if (playerWon) {
+  if (playerWon) 
+  {
     console.log(`Player ${player} wins!`);
   }
 
-  return { newBoard, newPlayer, playerWon };
+  return { newBoard, newPlayer, playerWon, tieGame };
 }
 
 interface BoardGameGridProps {
@@ -148,8 +137,8 @@ function stateReducer(state: State, action: GameAction): State {
           return state; // no more moves allowed
         }
 
-        const { newBoard, newPlayer, playerWon } = applyMoveToBoard(state.board, state.player, action.value);
-        return { player: newPlayer, board: newBoard, playerWon };
+        const { newBoard, newPlayer, playerWon, tieGame } = applyMoveToBoard(state.board, state.player, action.value);
+        return { player: newPlayer, board: newBoard, playerWon, tieGame };
       }
     default:
       throw new Error("Unknown action");
