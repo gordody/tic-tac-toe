@@ -4,7 +4,7 @@ import Board from './Board.ts';
 import './Connect4Game.css'
 import type { GameProps } from '../interfaces.ts';
 
-import type { BoardPlaceValueType, BoardMove } from '../types.ts'
+import type { XValueType, OValueType, EmptyValueType, BoardPlaceValueType, BoardMove } from '../types.ts';
 
 // Connect-4 game logic
 // 7x6 grid, 2 players (X and O), take turns
@@ -14,25 +14,34 @@ import type { BoardPlaceValueType, BoardMove } from '../types.ts'
 const BoardWidth = 7;
 const BoardHeight = 6;
 
-interface State {
-  player: number;
-  playerWon: boolean;
-  board: Board<BoardPlaceValueType>;
+const PlayerToValueMap: { [key: number]: BoardPlaceValueType } = {
+  1: 'X' as XValueType,
+  2: 'O' as OValueType,
 };
+
+const EmptyValue = '' as EmptyValueType;
 
 type GameAction =
   | { type: "reset" }
   | { type: "move"; value: BoardMove } // State["board"]
 
+interface State {
+  player: number;
+  playerWon: number;
+  tieGame: boolean;
+  board: Board<BoardPlaceValueType>;
+};
+
 const initialState: State = { 
   player: 1,
-  playerWon: false,
-  board: new Board<BoardPlaceValueType>(BoardWidth, BoardHeight, 'E'),
+  playerWon: 0,
+  tieGame: false,
+  board: new Board<BoardPlaceValueType>(BoardWidth, BoardHeight, EmptyValue),
 };
 
 function playerToValue(player: number) : BoardPlaceValueType
 {
-  return player === 1 ? 'X' : 'O';
+  return PlayerToValueMap[player];
 }
 
 // 3 of the same in a row, column or diagonal
@@ -41,7 +50,11 @@ function playerWins(board: Board<BoardPlaceValueType>, value: BoardPlaceValueTyp
   return board.isNConnected(4, value);
 }
 
-function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : { newBoard: Board<BoardPlaceValueType>, newPlayer: number, playerWon: boolean }
+function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : { 
+  newBoard: Board<BoardPlaceValueType>, 
+  newPlayer: number, 
+  playerWon: number,
+  tieGame: boolean }
 {
   const newBoard = board.clone();
 
@@ -51,14 +64,20 @@ function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, mov
     newBoard.setAt(move.x, move.y, newValue);
   }
 
-  const playerWon = playerWins(newBoard);
+  const playerWon = playerWins(newBoard, newValue) ? player : 0;
   const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
+  const tieGame = newBoard.isBoardFull() && !playerWon;
 
-  if (playerWon) {
+  if (playerWon !== 0) 
+  {
     console.log(`Player ${player} wins!`);
   }
+  if (tieGame)
+  {
+    console.log(`Game tied!`);
+  }
 
-  return { newBoard, newPlayer, playerWon };
+  return { newBoard, newPlayer, playerWon, tieGame };
 }
 
 interface BoardGameGridProps {
@@ -128,8 +147,8 @@ function stateReducer(state: State, action: GameAction): State {
           return state; // no more moves allowed
         }
 
-        const { newBoard, newPlayer, playerWon } = applyMoveToBoard(state.board, state.player, action.value);
-        return { player: newPlayer, board: newBoard, playerWon };
+        const { newBoard, newPlayer, playerWon, tieGame } = applyMoveToBoard(state.board, state.player, action.value);
+        return { player: newPlayer, board: newBoard, playerWon, tieGame };
       }
     default:
       throw new Error("Unknown action");
