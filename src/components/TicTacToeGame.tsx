@@ -24,14 +24,12 @@ type GameAction =
   | { type: "reset" }
   | { type: "move"; value: BoardMove } // State["board"]
 
-
 interface State {
   player: number;
   playerWon: number;
   tieGame: boolean;
   board: Board<BoardPlaceValueType>;
 };
-
 
 const initialState: State = { 
   player: 1,
