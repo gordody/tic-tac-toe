@@ -1,81 +1,74 @@
 import { useReducer } from 'react'
 import Grid from './Grid.tsx';
-import Board from './Board.ts';
+import Board, { type MoveResult } from './Board.ts';
 import './GomokuGame.css'
 import type { GameProps } from '../interfaces.ts';
 
-import type { BoardPlaceValueType, BoardMove } from '../types.ts'
+import type { BoardPlaceValueType, BoardMove, XValueType, OValueType, EmptyValueType } from '../types.ts'
 
 const BoardWidth = 100;
 const BoardHeight = 100;
 
-interface State {
-  player: number;
-  playerWon: boolean;
-  board: Board<BoardPlaceValueType>;
+const PlayerToValueMap: { [key: number]: BoardPlaceValueType } = {
+  1: 'X' as XValueType,
+  2: 'O' as OValueType,
 };
+
+const EmptyValue = '' as EmptyValueType;
 
 type GameAction =
   | { type: "reset" }
   | { type: "move"; value: BoardMove } // State["board"]
 
+interface State {
+  player: number;
+  playerWon: number;
+  tieGame: boolean;
+  board: Board<BoardPlaceValueType>;
+};
+
 const initialState: State = { 
   player: 1,
-  playerWon: false,
-  board: new Board<BoardPlaceValueType>(BoardWidth, BoardHeight, 'E'),
+  playerWon: 0,
+  tieGame: false,
+  board: new Board<BoardPlaceValueType>(BoardWidth, BoardHeight, EmptyValue),
 };
 
 function playerToValue(player: number) : BoardPlaceValueType
 {
-  return player === 1 ? 'X' : 'O';
+  return PlayerToValueMap[player];
 }
 
-// 5 of the same in a row, column or diagonal
-function playerWins(board: Board<BoardPlaceValueType>) : boolean
+// 3 of the same in a row, column or diagonal
+function playerWins(board: Board<BoardPlaceValueType>, value: BoardPlaceValueType) : boolean
 {
-  // rows
-  for (let x = 0; x <= BoardWidth - 5; x++) 
-  {
-    for (let y = 0; y < BoardHeight; y++) 
-    {
-      const firstCell = board.getAt(x, y);
-      if (firstCell === 'E') continue;
-
-      let allMatch = true;
-      for (let offset = 1; offset < 5; offset++) {
-        if (board.getAt(x + offset, y) !== firstCell) {
-          allMatch = false;
-          break;
-        }
-      }
-      if (allMatch) return true;
-    }
-  }
-
-  // Similar checks would be needed for columns and diagonals in a complete implementation
-  
-  
-  return false;
+  return board.isNConnected(5, value);
 }
 
-function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : { newBoard: Board<BoardPlaceValueType>, newPlayer: number, playerWon: boolean }
+function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : MoveResult<BoardPlaceValueType>
 {
   const newBoard = board.clone();
-
   const newValue = playerToValue(player);
-  if (newBoard.getAt(move.x, move.y) === 'E')
+
+  if (newBoard.applyMove(newValue, move) === false)
   {
-    newBoard.setAt(move.x, move.y, newValue);
+    return { newBoard, newPlayer: player, playerWon: 0, tieGame: false };
   }
 
-  const playerWon = playerWins(newBoard);
+  const playerWon = playerWins(newBoard, newValue) ? player : 0;
   const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
+  const tieGame = newBoard.isBoardFull() && !playerWon;
 
-  if (playerWon) {
+  if (playerWon !== 0) 
+  {
     console.log(`Player ${player} wins!`);
   }
+  if (tieGame)
+  {
+    console.log(`Game tied!`);
+  }
 
-  return { newBoard, newPlayer, playerWon };
+  return { newBoard, newPlayer, playerWon, tieGame };
 }
 
 interface BoardGameGridProps {
@@ -108,7 +101,7 @@ const BoardGameGrid: React.FC<BoardGameGridProps> = ({
     if (x === undefined || y === undefined) return;
     if (!boardActive) return;
 
-    // Example DOM access: briefly highlight the clicked cell
+    // Briefly highlight the clicked cell
     if (cell) {
       const prevBg = cell.style.background;
       cell.style.background = "#e6f7ff";
@@ -140,13 +133,13 @@ function stateReducer(state: State, action: GameAction): State {
       return initialState;
     case "move":
       {
-        if (state.playerWon) 
+        if (state.playerWon !== 0 || state.tieGame) 
         {
           return state; // no more moves allowed
         }
 
-        const { newBoard, newPlayer, playerWon } = applyMoveToBoard(state.board, state.player, action.value);
-        return { player: newPlayer, board: newBoard, playerWon };
+        const { newBoard, newPlayer, playerWon, tieGame } = applyMoveToBoard(state.board, state.player, action.value);
+        return { player: newPlayer, board: newBoard, playerWon, tieGame };
       }
     default:
       throw new Error("Unknown action");

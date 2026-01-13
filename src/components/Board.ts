@@ -1,10 +1,17 @@
-import type { Coordinate } from "../types";
+import type { BoardMove, Coordinate } from "../types";
+export type MoveResult<BoardPlaceValueType> =
+{ 
+  newBoard: Board<BoardPlaceValueType>, 
+  newPlayer: number, 
+  playerWon: number,
+  tieGame: boolean 
+}
 
 export class Board<ValueType>
 {
   width = 0;
   height = 0;
-  emptyValue: ValueType | null = null;
+  emptyValue: ValueType;
 
   directions = [
     { dx: 1, dy: 0 },  // right
@@ -41,6 +48,8 @@ export class Board<ValueType>
 
   setAt(x: number, y: number, value: ValueType) : void
   {
+    console.log(`Setting cell at x: ${x}, y: ${y} to value: ${value}`);
+
     if (x < 0 || x >= this.width || y < 0 || y >= this.height)
     {
       throw new Error(`Error setting cell: board index out of bounds: x: ${x} - width: ${this.width}, y: ${y} - height: ${this.height}`);
@@ -51,8 +60,7 @@ export class Board<ValueType>
 
   clone() : Board<ValueType>
   {
-    const emptyValue = this.emptyValue || this.board[0]; // TODO: better way to get empty value
-
+    const emptyValue = this.emptyValue;
     const newBoard = new Board<ValueType>(this.width, this.height, emptyValue);
     newBoard.board = [...this.board];
     newBoard.occupiedCells = [...this.occupiedCells];
@@ -63,6 +71,28 @@ export class Board<ValueType>
   isBoardFull() : boolean
   {
     return this.board.length === this.occupiedCells.length;
+  }
+
+  // top left is 0,0; low right is width-1,height-1
+  getLowestEmptyCellInColumn(column: number, startY: number) : number | null
+  {
+    if (this.getAt(column, startY) !== this.emptyValue)
+    {
+      return null;
+    }
+
+    for (let y = startY + 1; y < this.height; y++)
+    {
+      if (this.getAt(column, y) !== this.emptyValue)
+      {
+        return y - 1;
+      }
+    }
+    if (this.getAt(column, this.height - 1) === this.emptyValue)
+    {
+      return this.height - 1;
+    }
+    return null;
   }
 
   // n cells in a row, column or diagonal unified check
@@ -136,6 +166,17 @@ export class Board<ValueType>
         }
       }
     }
+    return false;
+  }
+
+  applyMove(value: ValueType, move: BoardMove) : boolean
+  {
+    if (this.getAt(move.x, move.y) === this.emptyValue)
+    {
+      this.setAt(move.x, move.y, value);
+      return true;
+    }
+
     return false;
   }
 }

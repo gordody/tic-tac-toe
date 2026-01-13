@@ -1,6 +1,6 @@
 import { useReducer } from 'react'
 import Grid from './Grid.tsx';
-import Board from './Board.ts';
+import Board, { type MoveResult } from './Board.ts';
 import './Connect4Game.css'
 import type { GameProps } from '../interfaces.ts';
 
@@ -50,19 +50,19 @@ function playerWins(board: Board<BoardPlaceValueType>, value: BoardPlaceValueTyp
   return board.isNConnected(4, value);
 }
 
-function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : { 
-  newBoard: Board<BoardPlaceValueType>, 
-  newPlayer: number, 
-  playerWon: number,
-  tieGame: boolean }
+function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : MoveResult<BoardPlaceValueType>
 {
   const newBoard = board.clone();
-
   const newValue = playerToValue(player);
-  if (newBoard.getAt(move.x, move.y) === 'E')
+
+  // use gravity to find the lowest empty cell in the column
+  const lowestEmptyCell = newBoard.getLowestEmptyCellInColumn(move.x, move.y);
+  if (lowestEmptyCell === null) 
   {
-    newBoard.setAt(move.x, move.y, newValue);
+    return { newBoard, newPlayer: player, playerWon: 0, tieGame: false };
   }
+
+  newBoard.applyMove(newValue, { x: move.x, y: lowestEmptyCell });
 
   const playerWon = playerWins(newBoard, newValue) ? player : 0;
   const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
@@ -94,7 +94,7 @@ interface BoardGameGridProps {
    - Click or focus+Enter/Space a cell to toggle X → O → empty.
    - `onGridClick` shows receiving the DOM cell element and coords.
 */
-export const BoardGameGrid: React.FC<BoardGameGridProps> = ({
+const BoardGameGrid: React.FC<BoardGameGridProps> = ({
   rows = BoardHeight,
   cols = BoardWidth,
   board,
@@ -102,15 +102,15 @@ export const BoardGameGrid: React.FC<BoardGameGridProps> = ({
   moveHandler,
 }) => {
 
-  const renderCell = (x: number, y: number) => {
-    return board.getAt(x, y);
+  const renderCell = (r: number, c: number) => {
+    return board.getAt(r, c);
   };
 
   const onGridClick = (cell: HTMLDivElement | null, x?: number, y?: number) => {
     if (x === undefined || y === undefined) return;
     if (!boardActive) return;
 
-    // Example DOM access: briefly highlight the clicked cell
+    // Briefly highlight the clicked cell
     if (cell) {
       const prevBg = cell.style.background;
       cell.style.background = "#e6f7ff";
@@ -142,7 +142,7 @@ function stateReducer(state: State, action: GameAction): State {
       return initialState;
     case "move":
       {
-        if (state.playerWon) 
+        if (state.playerWon !== 0 || state.tieGame) 
         {
           return state; // no more moves allowed
         }

@@ -1,10 +1,10 @@
 import { useReducer } from 'react'
 import Grid from './Grid.tsx';
-import Board from './Board.ts';
 import './TicTacToeGame.css'
 import type { GameProps } from '../interfaces.ts';
 
 import type { XValueType, OValueType, EmptyValueType, BoardPlaceValueType, BoardMove } from '../types.ts';
+import { Board, type MoveResult } from './Board.ts';
 
 // Tic-Tac-Toe game logic
 // 3x3 grid, 2 players (X and O), take turns
@@ -43,29 +43,20 @@ function playerToValue(player: number) : BoardPlaceValueType
   return PlayerToValueMap[player];
 }
 
-function isCellEmpty(value: BoardPlaceValueType) : boolean
-{
-  return value === EmptyValue;
-}
-
 // 3 of the same in a row, column or diagonal
 function playerWins(board: Board<BoardPlaceValueType>, value: BoardPlaceValueType) : boolean
 {
   return board.isNConnected(3, value);
 }
 
-function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : { 
-  newBoard: Board<BoardPlaceValueType>, 
-  newPlayer: number, 
-  playerWon: number,
-  tieGame: boolean }
+function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : MoveResult<BoardPlaceValueType>
 {
   const newBoard = board.clone();
-
   const newValue = playerToValue(player);
-  if (isCellEmpty(newBoard.getAt(move.x, move.y)))
+
+  if (newBoard.applyMove(newValue, move) === false)
   {
-    newBoard.setAt(move.x, move.y, newValue);
+    return { newBoard, newPlayer: player, playerWon: 0, tieGame: false };
   }
 
   const playerWon = playerWins(newBoard, newValue) ? player : 0;
