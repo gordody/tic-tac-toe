@@ -6,8 +6,8 @@ import type { GameProps } from '../interfaces.ts';
 
 import type { BoardPlaceValueType, BoardMove, XValueType, OValueType, EmptyValueType } from '../types.ts'
 
-const BoardWidth = 100;
-const BoardHeight = 100;
+const BoardWidth = 40;
+const BoardHeight = 20;
 
 const PlayerToValueMap: { [key: number]: BoardPlaceValueType } = {
   1: 'X' as XValueType,
