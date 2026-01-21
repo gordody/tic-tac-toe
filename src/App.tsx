@@ -15,6 +15,66 @@ const EmptyValue = '' as EmptyValueType;
 
 const players: Array<IPlayer<BoardPlaceValueType>> = [];
 
+
+// ApplyMove for Connect4:
+/*
+function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : MoveResult<BoardPlaceValueType>
+{
+  const newBoard = board.clone();
+  const newValue = playerToValue(player);
+
+  // use gravity to find the lowest empty cell in the column
+  const lowestEmptyCell = newBoard.getLowestEmptyCellInColumn(move.x, move.y);
+  if (lowestEmptyCell === null) 
+  {
+    return { newBoard, newPlayer: player, playerWon: 0, tieGame: false };
+  }
+
+  newBoard.applyMove(newValue, { x: move.x, y: lowestEmptyCell });
+
+  const playerWon = playerWins(newBoard, newValue) ? player : 0;
+  const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
+  const tieGame = newBoard.isBoardFull() && !playerWon;
+
+  if (playerWon !== 0) 
+  {
+    console.log(`Player ${player} wins!`);
+  }
+  if (tieGame)
+  {
+    console.log(`Game tied!`);
+  }
+
+  return { newBoard, newPlayer, playerWon, tieGame };
+}
+// For gomoku:
+function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : MoveResult<BoardPlaceValueType>
+{
+  const newBoard = board.clone();
+  const newValue = playerToValue(player);
+
+  if (newBoard.applyMove(newValue, move) === false)
+  {
+    return { newBoard, newPlayer: player, playerWon: 0, tieGame: false };
+  }
+
+  const playerWon = playerWins(newBoard, newValue) ? player : 0;
+  const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
+  const tieGame = newBoard.isBoardFull() && !playerWon;
+
+  if (playerWon !== 0) 
+  {
+    console.log(`Player ${player} wins!`);
+  }
+  if (tieGame)
+  {
+    console.log(`Game tied!`);
+  }
+
+  return { newBoard, newPlayer, playerWon, tieGame };
+}
+ */
+
 // game loop:
 // 1. player makes a move
 // 2. check for win or tie
