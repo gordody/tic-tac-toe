@@ -1,44 +1,21 @@
 import { useReducer } from 'react'
 import Grid from './Grid.tsx';
-import './TicTacToeGame.css'
-import type { GameProps } from '../interfaces.ts';
+import './BoardGame.css'
+import type { GameProps, GameState, IBoard, MoveResult } from '../interfaces.ts';
 
-import type { XValueType, OValueType, EmptyValueType, BoardPlaceValueType, BoardMove } from '../types.ts';
-import { Board, type MoveResult } from './Board.ts';
-import type Player from './Player.ts';
+import type { XValueType, OValueType, BoardPlaceValueType, BoardMove } from '../types.ts';
+import { Board } from './Board.ts';
 
-// Tic-Tac-Toe game logic
-// 3x3 grid, 2 players (X and O), take turns
-// one wins by connecting 3 in a row, column, or diagonal
-
-const BoardWidth = 3;
-const BoardHeight = 3;
 
 const PlayerToValueMap: { [key: number]: BoardPlaceValueType } = {
   1: 'X' as XValueType,
   2: 'O' as OValueType,
 };
 
-const EmptyValue = '' as EmptyValueType;
-
 type GameAction =
-  | { type: "reset" }
-  | { type: "move"; value: BoardMove } // State["board"]
+  | { type: "reset"; value: GameState } // resets to the state specified (usually gameProps.initialState)
+  | { type: "move"; value: BoardMove }  // State["board"]
 
-interface State {
-  player: number;
-  playerWon: number;
-  tieGame: boolean;
-  board: Board<BoardPlaceValueType>;
-  players: Array<Player<BoardPlaceValueType>>;
-};
-
-const initialState: State = { 
-  player: 1,
-  playerWon: 0,
-  tieGame: false,
-  board: new Board<BoardPlaceValueType>(BoardWidth, BoardHeight, EmptyValue),
-};
 
 function playerToValue(player: number) : BoardPlaceValueType
 {
@@ -77,10 +54,19 @@ function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, mov
   return { newBoard, newPlayer, playerWon, tieGame };
 }
 
+interface BoardGameGridStyles {
+  backgroundColor?: string;
+  borderColor?: string;
+  cellColor?: string;
+  cellHoverColor?: string;
+  cellFontColor?: string;
+  cellSize?: number;
+  gap?: number;
+}
+
 interface BoardGameGridProps {
-  rows?: number;
-  cols?: number;
-  board: Board<BoardPlaceValueType>;
+  board: IBoard<BoardPlaceValueType>;
+  boardGameGridStyles?: BoardGameGridStyles;
   boardActive?: boolean;
   moveHandler: (x: number, y: number) => void;
 }
@@ -92,12 +78,13 @@ interface BoardGameGridProps {
    - `onGridClick` shows receiving the DOM cell element and coords.
 */
 const BoardGameGrid: React.FC<BoardGameGridProps> = ({
-  rows = BoardHeight,
-  cols = BoardWidth,
   board,
   boardActive = true,
   moveHandler,
 }) => {
+
+  const rows = board.height;
+  const cols = board.width;
 
   const renderCell = (r: number, c: number) => {
     return board.getAt(r, c);
@@ -133,10 +120,10 @@ const BoardGameGrid: React.FC<BoardGameGridProps> = ({
   );
 };
 
-function stateReducer(state: State, action: GameAction): State {
+function stateReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "reset":
-      return initialState;
+      return action.value;
     case "move":
       {
         if (state.playerWon !== 0 || state.tieGame) 
@@ -145,6 +132,7 @@ function stateReducer(state: State, action: GameAction): State {
         }
 
         const { newBoard, newPlayer, playerWon, tieGame } = applyMoveToBoard(state.board, state.player, action.value);
+
         return { player: newPlayer, board: newBoard, playerWon, tieGame };
       }
     default:
@@ -152,17 +140,17 @@ function stateReducer(state: State, action: GameAction): State {
   }
 }
 
-function TicTacToeGame(gameProps: GameProps) {
-  const [state, dispatch] = useReducer(stateReducer, initialState);
+function BoardGame(props: GameProps) {
+  const [state, dispatch] = useReducer(stateReducer, props.initialState);
   
   const move = (x: number, y: number) => {
     dispatch({ type: "move", value: { x, y } });
   };
   const reset = () => {
-    dispatch({ type: "reset" });
+    dispatch({ type: "reset", value: props.initialState });
   };
   const exit = () => {
-    gameProps.onExit();
+    props.onExit();
   };
 
   const boardActive = !state.playerWon && !state.tieGame;
@@ -172,7 +160,7 @@ function TicTacToeGame(gameProps: GameProps) {
       <div>Current Player: {state.player}</div>
       {state.playerWon !== 0 ? <div>{state.player} won</div>  : ""}
       {state.tieGame ? <div>Game tied</div>  : ""}
-      <BoardGameGrid rows={BoardHeight} cols={BoardWidth} board={state.board} boardActive={boardActive} moveHandler={move} />
+      <BoardGameGrid board={state.board} boardActive={boardActive} moveHandler={move} />
       <div>
         <button onClick={reset}>Restart</button>
       </div>
@@ -183,4 +171,4 @@ function TicTacToeGame(gameProps: GameProps) {
   )
 }
 
-export default TicTacToeGame;
+export default BoardGame;

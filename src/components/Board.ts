@@ -1,13 +1,11 @@
 import type { BoardMove, Coordinate } from "../types";
-export type MoveResult<BoardPlaceValueType> =
-{ 
-  newBoard: Board<BoardPlaceValueType>, 
-  newPlayer: number, 
-  playerWon: number,
-  tieGame: boolean 
-}
+import type { IBoard, IPlayer } from "../interfaces";
 
-export class Board<ValueType>
+import ConnectedCells from "./ConnectedCells";
+
+type ConnectedCellArray <ValueType> = Array<ConnectedCells<ValueType>>;
+
+export class Board<ValueType> implements IBoard<ValueType>
 {
   width = 0;
   height = 0;
@@ -26,12 +24,20 @@ export class Board<ValueType>
 
   board: Array<ValueType> = [];
   occupiedCells: Array<Coordinate> = Array<Coordinate>();
+  playerConnectedCells : Array<ConnectedCellArray<ValueType>>;
+  players: Array<IPlayer<ValueType>>;
   
-  constructor(width: number, height: number, emptyValue: ValueType)
+  constructor(width: number, height: number, emptyValue: ValueType, players: Array<IPlayer<ValueType>>)
   {
     this.width = width;
     this.height = height;
     this.emptyValue = emptyValue;
+    this.players = players;
+    this.playerConnectedCells = new Array<ConnectedCellArray<ValueType>>(players.length);
+    for (let i = 0; i < players.length; i++)
+    {
+      this.playerConnectedCells[i] = new Array<ConnectedCells<ValueType>>();
+    }
 
     this.board = new Array<ValueType>(width * height);
     this.board.fill(emptyValue);
@@ -58,12 +64,14 @@ export class Board<ValueType>
     this.occupiedCells.push({ x, y });
   }
 
-  clone() : Board<ValueType>
+  clone() : IBoard<ValueType>
   {
     const emptyValue = this.emptyValue;
-    const newBoard = new Board<ValueType>(this.width, this.height, emptyValue);
+    const newBoard = new Board<ValueType>(this.width, this.height, emptyValue, this.players);
     newBoard.board = [...this.board];
     newBoard.occupiedCells = [...this.occupiedCells];
+    newBoard.players = [...this.players];
+    newBoard.playerConnectedCells = [...this.playerConnectedCells];
 
     return newBoard;
   }
