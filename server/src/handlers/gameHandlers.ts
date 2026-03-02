@@ -1,8 +1,8 @@
 import type { Socket } from 'socket.io';
 import type { Server } from 'socket.io';
-import { GameSession, Player, MovePayload, MoveResult, GameConfig } from '../types';
-import gameSessionManager from '../models/GameSessionManager';
-import GameEngine from '../services/GameEngine';
+import { GameSession, Player, MovePayload, MoveResult, GameConfig } from '../types.js';
+import gameSessionManager from '../models/GameSessionManager.js';
+import GameEngine from '../services/GameEngine.js';
 
 export const registerGameHandlers = (
   io: Server,

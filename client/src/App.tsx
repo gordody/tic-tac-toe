@@ -7,7 +7,7 @@ import BoardGame from './components/BoardGame.tsx';
 import type { IBoard, MoveResult, GameProps, GameState, IPlayer } from './interfaces.ts';
 import type { BoardMove, BoardPlaceValueType, EmptyValueType } from './types.ts';
 
-import availableGames from './defaultGames.json';
+import availableGames from '../../common/defaultGames.json';
 
 import './App.css';
 import { Board } from './components/Board.ts';

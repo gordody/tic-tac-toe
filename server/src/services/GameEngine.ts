@@ -1,4 +1,4 @@
-import { GameSession, Player } from '../types';
+import { GameSession, Player } from '../types.js';
 
 export class GameEngine {
   /**

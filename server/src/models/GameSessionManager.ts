@@ -1,4 +1,4 @@
-import { GameSession, Player, GameConfig } from '../types';
+import { GameSession, Player, GameConfig } from '../types.js';
 
 // In-memory game session storage
 class GameSessionManager {

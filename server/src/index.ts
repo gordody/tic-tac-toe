@@ -5,8 +5,8 @@ import { Server } from 'socket.io';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import registerGameHandlers from './handlers/gameHandlers';
-import type { GameConfig } from './types';
+import registerGameHandlers from './handlers/gameHandlers.js';
+import type { GameConfig } from './types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +26,7 @@ app.use(cors());
 app.use(express.json());
 
 // Load games configuration
-const gamesPath = path.join(__dirname, '../..', 'src', 'defaultGames.json');
+const gamesPath = path.join(__dirname, '../..', 'common', 'defaultGames.json');
 let allGames: GameConfig[] = [];
 
 try {
