@@ -1,4 +1,4 @@
-import type { Coordinate } from "../types";
+import type { Coordinate } from '../types';
 
 export type Direction = { dx: number; dy: number };
 

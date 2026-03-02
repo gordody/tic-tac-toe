@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 export interface GridProps {
   rows: number;
@@ -10,12 +10,7 @@ export interface GridProps {
   // - the clicked/focused cell element (or null),
   // - zero-indexed row and col (or undefined),
   // - the original React event (Mouse or Keyboard).
-  onGridClick?: (
-    cell: HTMLDivElement | null,
-    x?: number,
-    y?: number,
-    event?: React.SyntheticEvent
-  ) => void;
+  onGridClick?: (cell: HTMLDivElement | null, x?: number, y?: number, event?: React.SyntheticEvent) => void;
   renderCell?: (x: number, y: number) => React.ReactNode;
 }
 
@@ -29,36 +24,36 @@ export const Grid: React.FC<GridProps> = ({
   renderCell,
 }) => {
   const containerStyle: React.CSSProperties = {
-    display: "grid",
+    display: 'grid',
     gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
     gridAutoRows: `${cellSize}px`,
     gap: `${gap}px`,
   };
 
   const cellStyle: React.CSSProperties = {
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    userSelect: "none",
-    cursor: "pointer",
-    background: "#fff",
-    border: "1px solid #ddd",
-    boxSizing: "border-box",
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    userSelect: 'none',
+    cursor: 'pointer',
+    background: '#fff',
+    border: '1px solid #ddd',
+    boxSizing: 'border-box',
   };
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = (e.target as Element).closest("[data-cell]") as HTMLDivElement | null;
+    const target = (e.target as Element).closest('[data-cell]') as HTMLDivElement | null;
     const y = target ? Number(target.dataset.row) : undefined;
     const x = target ? Number(target.dataset.col) : undefined;
     onGridClick?.(target, x, y, e);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "Enter" && e.key !== " ") return;
+    if (e.key !== 'Enter' && e.key !== ' ') return;
     const active = document.activeElement as HTMLElement | null;
-    const target = active?.closest("[data-cell]") as HTMLDivElement | null;
+    const target = active?.closest('[data-cell]') as HTMLDivElement | null;
     const y = target ? Number(target.dataset.row) : undefined;
     const x = target ? Number(target.dataset.col) : undefined;
     onGridClick?.(target, x, y, e);
@@ -87,12 +82,7 @@ export const Grid: React.FC<GridProps> = ({
   }
 
   return (
-    <div
-      className={className}
-      style={containerStyle}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-    >
+    <div className={className} style={containerStyle} onClick={handleClick} onKeyDown={handleKeyDown}>
       {cells}
     </div>
   );

@@ -4,131 +4,60 @@
 import React, { useState } from 'react';
 import GameSelector from './GameSelector.tsx';
 import BoardGame from './components/BoardGame.tsx';
-import type { IBoard, MoveResult, GameProps, IPlayer } from './interfaces.ts';
+import type { IBoard, MoveResult, GameProps, GameState, IPlayer } from './interfaces.ts';
 import type { BoardMove, BoardPlaceValueType, EmptyValueType } from './types.ts';
 
 import availableGames from './defaultGames.json';
 
 import './App.css';
+import { Board } from './components/Board.ts';
 
 const EmptyValue = '' as EmptyValueType;
 
 const players: Array<IPlayer<BoardPlaceValueType>> = [];
 
-
-// ApplyMove for Connect4:
-/*
-function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : MoveResult<BoardPlaceValueType>
-{
+function applyMoveFn(
+  board: IBoard<BoardPlaceValueType>,
+  player: IPlayer<BoardPlaceValueType>,
+  players: Array<IPlayer<BoardPlaceValueType>>,
+  move: BoardMove,
+  getNextPlayerFn: (currentPlayer: IPlayer<BoardPlaceValueType>, players: Array<IPlayer<BoardPlaceValueType>>) => IPlayer<BoardPlaceValueType>,
+  processMoveFn: (board: IBoard<BoardPlaceValueType>, move: BoardMove) => BoardMove,
+  playerWinFn: (board: IBoard<BoardPlaceValueType>, value: BoardPlaceValueType) => boolean
+): MoveResult<BoardPlaceValueType> {
   const newBoard = board.clone();
-  const newValue = playerToValue(player);
 
-  // use gravity to find the lowest empty cell in the column
-  const lowestEmptyCell = newBoard.getLowestEmptyCellInColumn(move.x, move.y);
-  if (lowestEmptyCell === null) 
-  {
-    return { newBoard, newPlayer: player, playerWon: 0, tieGame: false };
+  const processedMove = processMoveFn(newBoard, move);
+  if (processedMove === null) {
+    return { newBoard, newPlayer: player, playerWon: null, tieGame: false };
   }
 
-  newBoard.applyMove(newValue, { x: move.x, y: lowestEmptyCell });
+  newBoard.applyMove(player.piece, processedMove);
 
-  const playerWon = playerWins(newBoard, newValue) ? player : 0;
-  const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
+  const playerWon = playerWinFn(newBoard, player.piece) ? player : null;
+  let newPlayer = player;
+  if (!playerWon) {
+    newPlayer = getNextPlayerFn(player, players);
+  }
   const tieGame = newBoard.isBoardFull() && !playerWon;
 
-  if (playerWon !== 0) 
-  {
-    console.log(`Player ${player} wins!`);
+  if (playerWon !== null) {
+    console.log(`Player ${playerWon.name} wins!`);
   }
-  if (tieGame)
-  {
+  if (tieGame) {
     console.log(`Game tied!`);
   }
 
   return { newBoard, newPlayer, playerWon, tieGame };
 }
-// For gomoku:
-function applyMoveToBoard(board: Board<BoardPlaceValueType>, player: number, move: BoardMove) : MoveResult<BoardPlaceValueType>
-{
-  const newBoard = board.clone();
-  const newValue = playerToValue(player);
 
-  if (newBoard.applyMove(newValue, move) === false)
-  {
-    return { newBoard, newPlayer: player, playerWon: 0, tieGame: false };
-  }
-
-  const playerWon = playerWins(newBoard, newValue) ? player : 0;
-  const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
-  const tieGame = newBoard.isBoardFull() && !playerWon;
-
-  if (playerWon !== 0) 
-  {
-    console.log(`Player ${player} wins!`);
-  }
-  if (tieGame)
-  {
-    console.log(`Game tied!`);
-  }
-
-  return { newBoard, newPlayer, playerWon, tieGame };
-}
- */
-
-// game loop:
-// 1. player makes a move
-// 2. check for win or tie
-// 3. switch players
-// 4. repeat until win or tie
-function gameLoop(applyMoveFn, processMoveFn, playerWinFn, board: IBoard<BoardPlaceValueType>, players: Array<IPlayer<BoardPlaceValueType>>)
-{
-  // get current player
+const getNextPlayerFn = (currentPlayer: IPlayer<BoardPlaceValueType>, players: Array<IPlayer<BoardPlaceValueType>>): IPlayer<BoardPlaceValueType> => {
   const nPlayers = players.length;
-  let currentPlayerIndex = 0;
+  const currentPlayerIndex = players.findIndex(player => player.id === currentPlayer.id);
+  const newPlayer = players[(currentPlayerIndex + 1) % nPlayers];
+  console.log(`Next player: ${currentPlayerIndex} of ${players.length} ${newPlayer.name}`);
 
-  while (true)
-  {
-    const currentPlayer = players[currentPlayerIndex];
-
-    // get move from player (this would be from UI in a real app)
-    const move: BoardMove = { x: 0, y: 0 }; // placeholder
-
-    // apply move to board
-    // const result = applyMoveToBoard(board, currentPlayer, move);
-
-    // check for win or tie
-    // if (result.playerWon) { console.log(`${currentPlayer.name} wins!`); break; }
-    // if (result.tieGame) { console.log(`It's a tie!`); break; }
-
-    // switch players
-    currentPlayerIndex = (currentPlayerIndex + 1) % nPlayers;
-  }
-}
-
-function applyMoveToBoard(board: IBoard<BoardPlaceValueType>, player: IPlayer<BoardPlaceValueType>, move: BoardMove) : MoveResult<BoardPlaceValueType>
-{
-  const newBoard = board.clone();
-  const newValue = player.piece;
-
-  if (newBoard.applyMove(newValue, move) === false)
-  {
-    return { newBoard, newPlayer: player, playerWon: 0, tieGame: false };
-  }
-
-  const playerWon = playerWins(newBoard, newValue) ? player : 0;
-  const newPlayer = playerWon ? player : (player === 1 ? 2 : 1);
-  const tieGame = newBoard.isBoardFull() && !playerWon;
-
-  if (playerWon !== 0) 
-  {
-    console.log(`Player ${player} wins!`);
-  }
-  if (tieGame)
-  {
-    console.log(`Game tied!`);
-  }
-
-  return { newBoard, newPlayer, playerWon, tieGame };
+  return newPlayer;
 }
 
 const playerWinFns: { [key: string]: (board: IBoard<BoardPlaceValueType>, value: BoardPlaceValueType) => boolean } = {
@@ -137,48 +66,48 @@ const playerWinFns: { [key: string]: (board: IBoard<BoardPlaceValueType>, value:
   'gomoku': (board: IBoard<BoardPlaceValueType>, value: BoardPlaceValueType) => board.isNConnected(5, value),
 };
 
-type InitialStateType = {
-  width: number;
-  height: number;
-  emptyValue: BoardPlaceValueType;
-};
-  
-const gameInitialStates: { [key: string]: InitialStateType } = {
-  'tic-tac-toe': {
-    width: 3,
-    height: 3,
-    emptyValue: EmptyValue,
-  },
-  'connect-4': {
-    width: 7,
-    height: 6,
-    emptyValue: EmptyValue,
-  },
-  'gomoku': {
-    width: 15,
-    height: 15,
-    emptyValue: EmptyValue,
-  },
+const processMoveFns: { [key: string]: (board: IBoard<BoardPlaceValueType>, move: BoardMove) => BoardMove } = {
+  'tic-tac-toe': (_board: IBoard<BoardPlaceValueType>, move: BoardMove) => move,
+  'connect-4': (board: IBoard<BoardPlaceValueType>, move: BoardMove) => ({ x: move.x, y: board.getLowestEmptyCellInColumn(move.x, move.y) ?? move.y } as BoardMove),
+  'gomoku': (_board: IBoard<BoardPlaceValueType>, move: BoardMove) => move,
 };
 
-const gameMoveFunctions: { [key: string]: (board: any, player: number, move: any) => any } = {
-  // 'tic-tac-toe': applyMoveToTicTacToeBoard,
-  // 'connect-4': applyMoveToConnect4Board,
-  // 'gomoku': applyMoveToGomokuBoard,
-};
+const getGameProps = (gameId: string): GameProps => {
+  const currGame = availableGames.find(game => game.id === gameId);
+  if (!currGame) {
+    throw new Error(`Game with id ${gameId} not found`);
+  }
+  if (players.length === 0) {
+    // Initialize players based on the game. For simplicity, we assume 2 players for all games here.
+    players.push({ id: 'player1', name: 'Player 1', piece: 'X', playerType: 'Human' });
+    players.push({ id: 'player2', name: 'Player 2', piece: 'O', playerType: 'Human' });
+  }
 
-const getGameProps = (gameId: string) : GameProps<any> => {
-  const initialState = gameInitialStates[gameId];
   const playerWinFn = playerWinFns[gameId];
+  const initialBoard = new Board<BoardPlaceValueType>(
+    currGame.boardProps.width,
+    currGame.boardProps.height,
+    EmptyValue,
+    players
+  );
+
+  const gameState: GameState = {
+    player: players[0], // placeholder, should be set to the first player in the players array for the game
+    playerWon: null,
+    tieGame: false,
+    board: initialBoard, // should be initialized to an empty board of the correct size for the game
+    players: players, // should be set to the correct players for the game
+    getNextPlayerFn: getNextPlayerFn,
+    playerWinFn: playerWinFn,
+    processMoveFn: processMoveFns[gameId],
+    applyMoveToBoardFn: applyMoveFn,
+  };
 
   return {
-    width: initialState.width,
-    height: initialState.height,
-    emptyValue: initialState.emptyValue,
-    playerWinFn: playerWinFn,
+    initialState: gameState,
+    onExit: () => { },
   };
-}
-
+};
 
 const App: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
@@ -191,19 +120,18 @@ const App: React.FC = () => {
     setSelectedGame(null);
   };
 
+  const gameProps = getGameProps(selectedGame || 'tic-tac-toe');
+  gameProps.onExit = handleExitGame;
+
   return (
     <div className="app-container">
       <div className="app-title">Grid Games</div>
 
       {!selectedGame ? (
         <GameSelector games={availableGames} onSelectGame={handleSelectGame} />
-      ) : selectedGame === 'tic-tac-toe' ? (
-        <BoardGame width={3} height={3} emptyValue={null} onExit={handleExitGame} />
-      // ) : selectedGame === 'connect-4' ? (
-      //   <Connect4Game onExit={handleExitGame} />
-      // ) : selectedGame === 'gomoku' ? (
-      //   <GomokuGame onExit={handleExitGame} />
-      ) : null}
+      ) : (
+        <BoardGame {...gameProps} />
+      )}
     </div>
   );
 };

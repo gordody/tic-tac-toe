@@ -3,18 +3,72 @@
     "id": "tic-tac-toe",
     "name": "Tic Tac Toe",
     "description": "A simple Tic Tac Toe game.",
-    "imageUrl": "tic-tac-toe.png"
+    "tags": ["classic", "simple"],
+    "imageUrl": "tic-tac-toe.png",
+    "boardProps": {
+      "width": 3,
+      "height": 3,
+      "emptyValue": 0
+    }
   },
   {
     "id": "connect-4",
     "name": "Connect 4",
-    "description": "A fun Connect 4 game.",
-    "imageUrl": "connect-4.png"
+    "description": "The classic Connect 4 game: connecting stones on a vertical board with gravity in play.",
+    "tags": ["classic", "strategy", "gravity"],
+    "imageUrl": "connect-4.png",
+    "boardProps": {
+      "width": 7,
+      "height": 6,
+      "emptyValue": 0
+    }
   },
   {
     "id": "gomoku",
     "name": "Gomoku",
     "description": "A fun Gomoku game.",
-    "imageUrl": "gomoku.png"
+    "tags": ["classic", "strategy", "fun"],
+    "imageUrl": "gomoku.png",
+    "boardProps": {
+      "width": 15,
+      "height": 15,
+      "emptyValue": 0
+    }
+  },
+  {
+    "id": "reversi",
+    "name": "Reversi",
+    "description": "A fun Reversi game.",
+    "tags": ["classic", "strategy", "addictive", "fun"],
+    "imageUrl": "reversi.png",
+    "boardProps": {
+      "width": 8,
+      "height": 8,
+      "emptyValue": 0
+    }
+  },
+  {
+    "id": "checkers",
+    "name": "Checkers",
+    "description": "A fun Checkers game.",
+    "tags": ["classic", "strategy", "fun"],
+    "imageUrl": "checkers.png",
+    "boardProps": {
+      "width": 8,
+      "height": 8,
+      "emptyValue": 0
+    }
+  },
+  {
+    "id": "go",
+    "name": "Go",
+    "description": "Ancient strategy game of capturing stones on a grid.",
+    "tags": ["classic", "strategy", "fun", "ancient", "complex"],
+    "imageUrl": "go.png",
+    "boardProps": {
+      "width": 19,
+      "height": 19,
+      "emptyValue": 0
+    }
   }
 ]
